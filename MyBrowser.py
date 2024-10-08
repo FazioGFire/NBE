@@ -38,11 +38,16 @@ class URL:
             self.host, self.path = self.host.split("/", 1)
             self.path = "/" + self.path
 
+        if ":" in self.host:
+            self.host, port = self.host.split(":", 1)
+            self.port = int(port)
+
 
         print("link after checks: " + link)
         print("protocol: " + str(self.schema))
         print("host: " + str(self.host))
         print("path: " + str(self.path))
+        print("port: " + str(self.port))
         print("complete: " + self.schema + "://" + self.host + self.path)
 
 
