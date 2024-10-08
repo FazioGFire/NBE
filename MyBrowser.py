@@ -7,10 +7,10 @@ class URL:
         link.strip()
         if "://" in link:
             self.schema, self.host = link.split("://", 1)  # https://en.wikipedia.org/wiki/List_of_URI_schemes - all of them are ://
-            if "http" in self.schema: #need to define different scenarios
+            if self.schema == "http": #need to define different scenarios
                 print("http")
                 self.port = 80
-            elif "https" in self.schema:
+            elif self.schema == "https":
                 print("https")
                 self.port = 443
             elif "file" in self.schema:
@@ -33,24 +33,26 @@ class URL:
             link = self.schema + "://" + self.host
 
         if "/" not in self.host: #adds the path forward slash
-            path = self.host + "/"
+            self.path = "/"
         else: #separates path from host
             self.host, self.path = self.host.split("/", 1)
             self.path = "/" + self.path
 
 
         print("link after checks: " + link)
+        print("protocol: " + str(self.schema))
         print("host: " + str(self.host))
         print("path: " + str(self.path))
-        print("host + path: " + self.host + self.path)
+        print("complete: " + self.schema + "://" + self.host + self.path)
 
 
     def request(self):
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP) as sock:
             sock.connect((self.host, self.port))
-            ctx = ssl.create_default_context() # create "context" for encryption
-            sock = ctx.wrap_socket(sock, server_hostname=self.host) #wrap the socket with the context
+            if self.schema == "https":
+                ctx = ssl.create_default_context() # create "context" for encryption
+                sock = ctx.wrap_socket(sock, server_hostname=self.host) #wrap the socket with the context
 
             request = "GET {} HTTP/1.0\r\n".format(self.path)
             request += "Host: {}\r\n".format(self.host)
