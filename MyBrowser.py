@@ -90,6 +90,57 @@ class URL:
                 return content
 
 
+#coordinates are x pos, y pos, x size, y size
+WIDTH, HEIGHT = 1440, 660
+HSTEP, VSTEP = 9, 12 #characters spacing
+SCROLL_STEP = 100
+
+class UI:
+    def __init__(self):
+        self.scroll = 100
+        self.window = tkinter.Tk()
+        self.window.bind("<Down>", "test")
+        self.canvas = tkinter.Canvas(
+            self.window,
+            width=WIDTH,
+            height=HEIGHT,
+        )
+        self.canvas.pack()
+
+    def draw(self):
+        self.canvas.delete("all")
+        for x, y, c in self.display_list:
+            self.canvas.create_text(x, y - self.scroll, text=c)
+
+
+    def load(self, link):
+        body = link.request() #take the text from the request
+        text = lex(body) #excludes tags.
+        self.display_list = layout(text)
+        self.draw()
+
+        cursor_x, cursor_y = HSTEP, VSTEP
+        for c in text:
+            if cursor_x >= WIDTH - HSTEP:
+                cursor_y += VSTEP
+                cursor_x = HSTEP
+            self.canvas.create_text(cursor_x, cursor_y, text=c) #draws text based on cursor
+            cursor_x += HSTEP
+
+    def scroll(self, e):
+        self.scroll += SCROLL_STEP
+        self.draw()
+
+
+
+def layout(text):
+    display_list = []
+    cursor_x, cursor_y = HSTEP, VSTEP
+    for c in text:
+        display_list.append((cursor_x, cursor_y, c))
+    return display_list
+
+
 def lex(body):
     text = ""
     in_tag = False  # defines if body is within <> or not through bool
@@ -101,30 +152,3 @@ def lex(body):
         elif not in_tag:
             text += c
     return text
-
-
-WIDTH, HEIGHT = 800, 600
-
-class UI:
-    def __init__(self):
-        self.window = tkinter.Tk()
-        self.canvas = tkinter.Canvas(
-            self.window,
-            width=WIDTH,
-            height=HEIGHT,
-        )
-        self.canvas.pack()
-
-    def load(self, link):
-        body = link.request()
-        lex(body)# both lines show complete page by chaining request and body
-        #coordinates are x pos, y pos, x size, y size
-        HSTEP, VSTEP = 13, 18 #character spacing
-        cursor_x, cursor_y = HSTEP, VSTEP
-        for c in body:
-            if cursor_x >= WIDTH - HSTEP:
-                cursor_y += VSTEP
-                cursor_x = HSTEP
-            self.canvas.create_text(cursor_x, cursor_y, text=c)
-            cursor_x += HSTEP
-
